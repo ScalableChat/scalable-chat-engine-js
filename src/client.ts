@@ -17,12 +17,12 @@ export enum LogLevel {
   DEBUG = 0,
 }
 export class ScalableChatEngineOptions {
-  isBrowser?:boolean = false //for persistence purpose only
-  wsURL?:string 
-  baseURL?:string 
-  gqlURL?:string
+  isBrowser?: boolean = false //for persistence purpose only
+  wsURL?: string
+  baseURL?: string
+  gqlURL?: string
   logLevel?: LogLevel = LogLevel.PRODUCTION
-  
+
   constructor(data: Partial<ScalableChatEngineOptions>) {
     Object.assign(this, data)
   }
@@ -118,19 +118,19 @@ export class ScalableChatEngine {
     this.getLogLevel() <= LogLevel.LOG && console.log(`${ScalableChatEngine.name} Initialized`)
   }
 
-  getWSURL = ():string =>{
+  getWSURL = (): string => {
     return this.options.wsURL ?? 'http://localhost:3100'
   }
 
-  getBaseURL = ():string =>{
+  getBaseURL = (): string => {
     return this.options.baseURL ?? 'http://localhost:7100'
   }
 
-  getGqlURL = ():string =>{
+  getGqlURL = (): string => {
     return this.options.gqlURL ?? 'http://localhost:7100/graphql'
   }
 
-  getLogLevel = ():LogLevel =>{
+  getLogLevel = (): LogLevel => {
     return this.options.logLevel ?? LogLevel.PRODUCTION
   }
 
@@ -249,7 +249,7 @@ export class ScalableChatEngine {
     return new SChannel(this, channelId)
   }
 
-  shutdown(){
+  shutdown() {
     this.getChatSocket().close()
   }
 }
