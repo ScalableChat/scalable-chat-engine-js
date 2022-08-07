@@ -1,5 +1,5 @@
 {
-  "name": "scalable-chat-engine",
+  "name": "@scalablechat/scalable-chat-engine",
   "version": "1.0.3",
   "description": "engine for client",
   "main": "lib/index.js",
@@ -40,9 +40,5 @@
   },
   "files": [
     "lib/**/*"
-  ],
-  "publishConfig": {
-    "name": "@ScalableChat/scalable-chat-engine-js",
-    "registry":"https://npm.pkg.github.com"
-  }
+  ]
 }
