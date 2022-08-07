@@ -17,11 +17,12 @@ export enum LogLevel {
   DEBUG = 0,
 }
 export class ScalableChatEngineOptions {
-  isBrowser = false //for persistence purpose only
-  wsURL = 'http://localhost:3100'
-  baseURL = 'http://localhost:7100'
-  gqlURL = 'http://localhost:7100/graphql'
-  logLevel: LogLevel = LogLevel.PRODUCTION
+  isBrowser?:boolean = false //for persistence purpose only
+  wsURL?:string 
+  baseURL?:string 
+  gqlURL?:string
+  logLevel?: LogLevel = LogLevel.PRODUCTION
+  
   constructor(data: Partial<ScalableChatEngineOptions>) {
     Object.assign(this, data)
   }
@@ -40,7 +41,6 @@ export class ScalableChatEngine {
   isBrowser: boolean
   isNode: boolean
   axiosInstance: AxiosInstance
-  logLevel: LogLevel = LogLevel.PRODUCTION
   // baseURL?:string = "asd"
   // wsURL?:string = "asd"
   // gqlURL?:string = "asd"
@@ -75,32 +75,32 @@ export class ScalableChatEngine {
       ...inputOptions,
     }
 
-    // Check options
-    if (!IsDefinedNotNull(this.options.baseURL)) {
-      throw new Error('baseURL cannot be null')
-    }
-    if (!IsDefinedNotNull(this.options.wsURL)) {
-      throw new Error('wsURL cannot be null')
-    }
-    if (!IsDefinedNotNull(this.options.gqlURL)) {
-      throw new Error('gqlURL cannot be null')
-    }
+    // // Check options
+    // if (!IsDefinedNotNull(this.options.baseURL)) {
+    //   throw new Error('baseURL cannot be null')
+    // }
+    // if (!IsDefinedNotNull(this.getWSURL())) {
+    //   throw new Error('wsURL cannot be null')
+    // }
+    // if (!IsDefinedNotNull(this.getGqlURL())) {
+    //   throw new Error('gqlURL cannot be null')
+    // }
 
     // init Axios
     const axiosConfig: AxiosRequestConfig = {
       timeout: 3000,
       withCredentials: false,
-      baseURL: this.options.baseURL,
+      baseURL: this.getBaseURL(),
     }
     this.axiosInstance = axios.create(axiosConfig)
 
     // Init GQL client
-    this.gqlClient = new GraphQLClient(this.options.gqlURL)
+    this.gqlClient = new GraphQLClient(this.getGqlURL())
     this.gqlClient.setHeader('authorization', this.getAuthToken())
 
     // Init socket Manager
     const transports = ['websocket']
-    this.socketManager = new Manager(this.options.wsURL, {
+    this.socketManager = new Manager(this.getWSURL(), {
       reconnectionDelayMax: 10000,
       transports: transports,
     })
@@ -115,7 +115,23 @@ export class ScalableChatEngine {
     })
     this._applySocketEventHandler(this.chatSocket)
 
-    this.options.logLevel <= LogLevel.LOG && console.log(`${ScalableChatEngine.name} Initialized`)
+    this.getLogLevel() <= LogLevel.LOG && console.log(`${ScalableChatEngine.name} Initialized`)
+  }
+
+  getWSURL = ():string =>{
+    return this.options.wsURL ?? 'http://localhost:3100'
+  }
+
+  getBaseURL = ():string =>{
+    return this.options.baseURL ?? 'http://localhost:7100'
+  }
+
+  getGqlURL = ():string =>{
+    return this.options.gqlURL ?? 'http://localhost:7100/graphql'
+  }
+
+  getLogLevel = ():LogLevel =>{
+    return this.options.logLevel ?? LogLevel.PRODUCTION
   }
 
   public static getInstance(key: string, options?: ScalableChatEngineOptions): ScalableChatEngine
@@ -153,32 +169,32 @@ export class ScalableChatEngine {
   private _applySocketManagerEventHandler(socketManager: Manager) {
     this.getSocketManager()
     socketManager.on('open', () => {
-      this.options.logLevel <= LogLevel.LOG && console.log('Manager connect')
+      this.getLogLevel() <= LogLevel.LOG && console.log('Manager connect')
     })
     socketManager.on('close', (reason) => {
-      this.options.logLevel <= LogLevel.LOG && console.log('Manager close', reason)
+      this.getLogLevel() <= LogLevel.LOG && console.log('Manager close', reason)
     })
     socketManager.on('packet', (packet) => {
-      if (this.options.logLevel <= LogLevel.DEBUG) {
+      if (this.getLogLevel() <= LogLevel.DEBUG) {
         console.group('Manager packet')
         console.dir(packet, { depth: null })
         console.groupEnd()
       }
     })
     socketManager.on('ping', () => {
-      this.options.logLevel <= LogLevel.DEBUG && console.log('Manager ping')
+      this.getLogLevel() <= LogLevel.DEBUG && console.log('Manager ping')
     })
     socketManager.on('reconnect', (attempt) => {
-      this.options.logLevel <= LogLevel.DEBUG && console.log('Manager Reconnect success: ', attempt)
+      this.getLogLevel() <= LogLevel.DEBUG && console.log('Manager Reconnect success: ', attempt)
     })
     socketManager.on('reconnect_attempt', (attempt) => {
-      this.options.logLevel <= LogLevel.DEBUG && console.log('Manager Reconnect attempt: ', attempt)
+      this.getLogLevel() <= LogLevel.DEBUG && console.log('Manager Reconnect attempt: ', attempt)
     })
     socketManager.on('reconnect_error', (err) => {
-      this.options.logLevel <= LogLevel.DEBUG && console.error('Manager Reconnect err: ', err)
+      this.getLogLevel() <= LogLevel.DEBUG && console.error('Manager Reconnect err: ', err)
     })
     socketManager.on('reconnect_failed', () => {
-      this.options.logLevel <= LogLevel.DEBUG && console.error('Manager Reconnect failed')
+      this.getLogLevel() <= LogLevel.DEBUG && console.error('Manager Reconnect failed')
     })
   }
 
@@ -188,10 +204,10 @@ export class ScalableChatEngine {
     try {
       const socket = _socketManager.socket(namespace, socketOptions)
 
-      this.options.logLevel <= LogLevel.DEBUG && console.log(`socket create namespace ${namespace} success`)
+      this.getLogLevel() <= LogLevel.DEBUG && console.log(`socket create namespace ${namespace} success`)
       return socket
     } catch (error) {
-      this.options.logLevel <= LogLevel.DEBUG &&
+      this.getLogLevel() <= LogLevel.DEBUG &&
         console.error(`getSocket error, ns: ${namespace}, socketOptions: ${JSON.stringify(socketOptions)}`)
       throw new Error('Failed to get socket from socket manager')
     }
@@ -199,15 +215,15 @@ export class ScalableChatEngine {
 
   private _applySocketEventHandler(socket: Socket) {
     socket.on('connect', () => {
-      this.options.logLevel <= LogLevel.DEBUG && console.log(`Socket connected`)
+      this.getLogLevel() <= LogLevel.DEBUG && console.log(`Socket connected`)
     })
 
     socket.on('disconnect', (reason) => {
-      this.options.logLevel <= LogLevel.DEBUG && console.log(`Socket disconnect due to ${reason}`)
+      this.getLogLevel() <= LogLevel.DEBUG && console.log(`Socket disconnect due to ${reason}`)
     })
 
     socket.on('connect_error', (error) => {
-      this.options.logLevel <= LogLevel.DEBUG && console.error('Socket Connect err: ', error)
+      this.getLogLevel() <= LogLevel.DEBUG && console.error('Socket Connect err: ', error)
     })
 
     socket.onAny((event, data) => {
@@ -232,6 +248,10 @@ export class ScalableChatEngine {
   getChannel(channelId: string): SChannel {
     return new SChannel(this, channelId)
   }
+
+  shutdown(){
+    this.getChatSocket().close()
+  }
 }
 
 class SChannel {
@@ -239,7 +259,7 @@ class SChannel {
   readonly channelId: string
   constructor(public parent: ScalableChatEngine, channelId: string) {
     this.channelId = channelId
-    this.gqlClient = new GraphQLClient(parent.options.gqlURL)
+    this.gqlClient = new GraphQLClient(parent.getGqlURL())
     this.gqlClient.setHeader('authorization', parent.getAuthToken())
     this.gqlClient.setHeader('channelId', this.channelId)
   }
@@ -256,7 +276,7 @@ class SChannel {
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
-      throw new Error(`${this.sendTextMessage.name} error. \n ${errorMessages.join('\n')}`)
+      throw new Error(`${this.sendTextMessage.name} error. ${errorMessages.join('\n')}`)
     }
   }
 
@@ -271,7 +291,7 @@ class SChannel {
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
-      throw new Error(`${this.addNewMembers.name} error. \n ${errorMessages.join('\n')}`)
+      throw new Error(`${this.addNewMembers.name} error. ${errorMessages.join('\n')}`)
     }
   }
 }
