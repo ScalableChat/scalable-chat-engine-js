@@ -1,0 +1,8 @@
+{
+  "name": "scalable-chat-engine-js",
+  "version": "1.0.0",
+  "description": "engine core for scalable chat",
+  "main": "index.js",
+  "author": "jackykwandesign <jackykwandesign@gmail.com>",
+  "license": "MIT"
+}
