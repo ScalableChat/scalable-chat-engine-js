@@ -1,320 +1,277 @@
-import { Manager, Socket, SocketOptions } from "socket.io-client";
-import { GraphQLClient } from "graphql-request";
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
-import { isBoolean, IsDefinedNotNull, isString } from "./utils";
+import { Manager, Socket, SocketOptions } from 'socket.io-client'
+import { GraphQLClient } from 'graphql-request'
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import { isBoolean, IsDefinedNotNull, isString } from './utils'
 import {
-	ChannelMemberArrayOutput,
-	ChannelMemberCreateInput,
-	ChannelMessageOutput,
-	ChannelMessageType,
-	ChannelOutput,
-} from "./gql/type";
-import { getGQLErrorMessages } from "./gql/gqlErrorObject";
-import { GQLFunction } from "./gql/gqlFunction";
+  ChannelMemberArrayOutput,
+  ChannelMemberCreateInput,
+  ChannelMessageOutput,
+  ChannelMessageType,
+  ChannelOutput,
+} from './gql/type'
+import { getGQLErrorMessages } from './gql/gqlErrorObject'
+import { GQLFunction } from './gql/gqlFunction'
 export enum LogLevel {
-	PRODUCTION = 9,
-	LOG = 1,
-	DEBUG = 0,
+  PRODUCTION = 9,
+  LOG = 1,
+  DEBUG = 0,
 }
-export type ScalableChatEngineOptions = {
-	isBrowser?: boolean; //for persistence purpose only
-	wsURL?: string;
-	baseURL?: string;
-	gqlURL?: string;
-	logLevel?: number;
-};
+export class ScalableChatEngineOptions {
+  isBrowser = false //for persistence purpose only
+  wsURL = 'http://localhost:3100'
+  baseURL = 'http://localhost:7100'
+  gqlURL = 'http://localhost:7100/graphql'
+  logLevel: LogLevel = LogLevel.PRODUCTION
+  constructor(data: Partial<ScalableChatEngineOptions>) {
+    Object.assign(this, data)
+  }
+}
+
 export class ScalableChatEngine {
-	private static _instance?: ScalableChatEngine;
-	protected socketManager?: Manager;
-	protected chatSocket?: Socket;
-	protected gqlClient: GraphQLClient;
-	options: ScalableChatEngineOptions;
-	key: string;
-	secret?: string;
-	chatAppId?: string;
-	chatMemberId?: string;
-	isBrowser: boolean;
-	isNode: boolean;
-	axiosInstance: AxiosInstance;
-	// baseURL?:string = "asd"
-	// wsURL?:string = "asd"
-	// gqlURL?:string = "asd"
-	
-	// hooks
-	onNewMessage?:(message:ChannelMessageOutput)=>Promise<void>
-	onNewChannel?:(channel:ChannelOutput)=>Promise<void>
+  private static _instance?: ScalableChatEngine
+  protected socketManager?: Manager
+  protected chatSocket?: Socket
+  protected gqlClient: GraphQLClient
+  options: ScalableChatEngineOptions
+  key: string
+  secret?: string
+  chatAppId?: string
+  chatMemberId?: string
+  isBrowser: boolean
+  isNode: boolean
+  axiosInstance: AxiosInstance
+  logLevel: LogLevel = LogLevel.PRODUCTION
+  // baseURL?:string = "asd"
+  // wsURL?:string = "asd"
+  // gqlURL?:string = "asd"
 
-	private constructor(key: string, options?: ScalableChatEngineOptions);
-	private constructor(
-		key: string,
-		secret?: string,
-		options?: ScalableChatEngineOptions
-	);
-	private constructor(
-		key: string,
-		secretOrOptions?: ScalableChatEngineOptions | string,
-		options?: ScalableChatEngineOptions
-	) {
-		this.key = key;
-		// mute channel
-		// mute user
+  // hooks
+  onNewMessage?: (message: ChannelMessageOutput) => Promise<void>
+  onNewChannel?: (channel: ChannelOutput) => Promise<void>
 
-		if (secretOrOptions && isString(secretOrOptions)) {
-			this.secret = secretOrOptions;
-		}
+  private constructor(key: string, options?: ScalableChatEngineOptions)
+  private constructor(key: string, secret?: string, options?: ScalableChatEngineOptions)
+  private constructor(
+    key: string,
+    secretOrOptions?: ScalableChatEngineOptions | string,
+    options?: ScalableChatEngineOptions
+  ) {
+    this.key = key
+    // mute channel
+    // mute user
 
-		const inputOptions = options
-			? options
-			: secretOrOptions && !isString(secretOrOptions)
-			? secretOrOptions
-			: {};
-		this.isBrowser = isBoolean(inputOptions?.isBrowser)
-			? inputOptions?.isBrowser
-			: typeof window !== undefined;
-		this.isNode = !this.isBrowser;
-		this.options = {
-			// apply default value and override if provided
-			logLevel:LogLevel.PRODUCTION,
-			baseURL:"http://localhost:7100",
-			gqlURL:"http://localhost:7100/graphql",
-			wsURL:'http://localhost:3100',
-			...inputOptions,
-		};
-
-		// Check options
-		if(!IsDefinedNotNull(this.options.baseURL)){
-			throw new Error("baseURL cannot be null")
-		}
-		if(!IsDefinedNotNull(this.options.wsURL)){
-			throw new Error("wsURL cannot be null")
-		}
-		if(!IsDefinedNotNull(this.options.gqlURL)){
-			throw new Error("gqlURL cannot be null")
-		}
-
-		// init Axios
-		const axiosConfig: AxiosRequestConfig = {
-			timeout: 3000,
-			withCredentials: false,
-			baseURL: this.options.baseURL,
-		};
-		this.axiosInstance = axios.create(axiosConfig);
-
-		// Init GQL client
-		this.gqlClient = new GraphQLClient(this.options.gqlURL!);
-		this.gqlClient.setHeader("authorization", this.getAuthToken());
-
-		// Init socket Manager
-		const transports = ['websocket'];
-		this.socketManager = new Manager(this.options.wsURL, {
-			reconnectionDelayMax: 10000,
-			transports: transports,
-		});
-		this._applySocketManagerEventHandler(this.socketManager);
-		this.chatSocket = this._getNamespaceSocket({
-			namespace: '/chat',
-			socketOptions: {
-				auth: {
-					jwt: this.key,
-				},
-			},
-		});
-		this._applySocketEventHandler(this.chatSocket);
-		
-		this.options.logLevel! <= LogLevel.LOG && console.log(`${ScalableChatEngine.name} Initialized`)
-	}
-
-	public static getInstance(
-		key: string,
-		options?: ScalableChatEngineOptions
-	): ScalableChatEngine;
-	public static getInstance(
-		key: string,
-		secret?: string,
-		options?: ScalableChatEngineOptions
-	): ScalableChatEngine;
-	public static getInstance(
-		key: string,
-		secretOrOptions?: ScalableChatEngineOptions | string,
-		options?: ScalableChatEngineOptions
-	): ScalableChatEngine {
-		if (!ScalableChatEngine._instance) {
-			if (isString(secretOrOptions)) {
-				// is secret, in server side
-				ScalableChatEngine._instance = new ScalableChatEngine(
-					key,
-					secretOrOptions,
-					options
-				);
-			} else {
-				ScalableChatEngine._instance = new ScalableChatEngine(
-					key,
-					secretOrOptions
-				);
-			}
-		}
-		return ScalableChatEngine._instance as ScalableChatEngine;
-	}
-
-	private _checkSocketManager(){
-        
-        if(!this.socketManager){
-            throw new Error('SocketManager Not Initialized');
-        }
+    if (secretOrOptions && isString(secretOrOptions)) {
+      this.secret = secretOrOptions
     }
 
-    private _checkChatSocket(){
-        
-        if(!this.chatSocket){
-            throw new Error('Socket Not Initialized');
-        }
+    const inputOptions = options
+      ? options
+      : secretOrOptions && !isString(secretOrOptions)
+      ? secretOrOptions
+      : new ScalableChatEngineOptions({})
+    this.isBrowser = isBoolean(inputOptions?.isBrowser) ? inputOptions?.isBrowser : typeof window !== undefined
+    this.isNode = !this.isBrowser
+    this.options = {
+      ...inputOptions,
     }
 
-	private _applySocketManagerEventHandler(socketManager: Manager) {
-        this._checkSocketManager()
-		socketManager.on('open', () => {
-			this.options.logLevel!! <= LogLevel.LOG && console.log('Manager connect');
-		});
-		socketManager.on('close', (reason) => {
-			this.options.logLevel! <= LogLevel.LOG &&
-				console.log('Manager close', reason);
-		});
-		socketManager.on('packet', (packet) => {
-			if(this.options.logLevel! <= LogLevel.DEBUG){
-				console.group('Manager packet')
-				console.dir(packet, { depth: null })
-				console.groupEnd()
-			}
-		});
-		socketManager.on('ping', () => {
-			this.options.logLevel! <= LogLevel.DEBUG && console.log('Manager ping');
-		});
-		socketManager.on('reconnect', (attempt) => {
-			this.options.logLevel! <= LogLevel.DEBUG &&
-				console.log('Manager Reconnect success: ', attempt);
-		});
-		socketManager.on('reconnect_attempt', (attempt) => {
-			this.options.logLevel! <= LogLevel.DEBUG &&
-				console.log('Manager Reconnect attempt: ', attempt);
-		});
-		socketManager.on('reconnect_error', (err) => {
-			this.options.logLevel! <= LogLevel.DEBUG &&
-				console.error('Manager Reconnect err: ', err);
-		});
-		socketManager.on('reconnect_failed', () => {
-			this.options.logLevel! <= LogLevel.DEBUG &&
-				console.error('Manager Reconnect failed');
-		});
-	}
+    // Check options
+    if (!IsDefinedNotNull(this.options.baseURL)) {
+      throw new Error('baseURL cannot be null')
+    }
+    if (!IsDefinedNotNull(this.options.wsURL)) {
+      throw new Error('wsURL cannot be null')
+    }
+    if (!IsDefinedNotNull(this.options.gqlURL)) {
+      throw new Error('gqlURL cannot be null')
+    }
 
-	private _getNamespaceSocket = (props: {
-		namespace: string;
-		socketOptions: Partial<SocketOptions>;
-	}) => {
-        this._checkSocketManager()
-		const { namespace = '/', socketOptions } = props;
-		try {
-			const socket = this.socketManager!.socket(namespace, socketOptions);
-			
-			this.options.logLevel! <= LogLevel.DEBUG &&
-				console.log(`socket create namespace ${namespace} success`);
-			return socket;
-		} catch (error) {
-			this.options.logLevel! <= LogLevel.DEBUG &&
-				console.error(
-					`getSocket error, ns: ${namespace}, socketOptions: ${JSON.stringify(
-						socketOptions,
-					)}`,
-				);
-			throw new Error('Failed to get socket from socket manager');
-		}
-	};
+    // init Axios
+    const axiosConfig: AxiosRequestConfig = {
+      timeout: 3000,
+      withCredentials: false,
+      baseURL: this.options.baseURL,
+    }
+    this.axiosInstance = axios.create(axiosConfig)
 
-	private _applySocketEventHandler(socket: Socket) {
-		this._checkChatSocket()
-		socket.on('connect', () => {
-			this.options.logLevel! <= LogLevel.DEBUG &&
-				console.log(`Socket connected`);
-		});
+    // Init GQL client
+    this.gqlClient = new GraphQLClient(this.options.gqlURL)
+    this.gqlClient.setHeader('authorization', this.getAuthToken())
 
-		socket.on('disconnect', (reason) => {
-			this.options.logLevel! <= LogLevel.DEBUG &&
-				console.log(`Socket disconnect due to ${reason}`);
-		});
+    // Init socket Manager
+    const transports = ['websocket']
+    this.socketManager = new Manager(this.options.wsURL, {
+      reconnectionDelayMax: 10000,
+      transports: transports,
+    })
+    this._applySocketManagerEventHandler(this.socketManager)
+    this.chatSocket = this._getNamespaceSocket({
+      namespace: '/chat',
+      socketOptions: {
+        auth: {
+          jwt: this.key,
+        },
+      },
+    })
+    this._applySocketEventHandler(this.chatSocket)
 
-		socket.on('connect_error', (error) => {
-			this.options.logLevel! <= LogLevel.DEBUG &&
-				console.error('Socket Connect err: ', error);
-		});
-		
-		socket.onAny((event,data)=>{
-			this.socketEventHandler(event, data)
-		})
-	}
+    this.options.logLevel <= LogLevel.LOG && console.log(`${ScalableChatEngine.name} Initialized`)
+  }
 
-	private socketEventHandler = (event:string, data:string) =>{
+  public static getInstance(key: string, options?: ScalableChatEngineOptions): ScalableChatEngine
+  public static getInstance(key: string, secret?: string, options?: ScalableChatEngineOptions): ScalableChatEngine
+  public static getInstance(
+    key: string,
+    secretOrOptions?: ScalableChatEngineOptions | string,
+    options?: ScalableChatEngineOptions
+  ): ScalableChatEngine {
+    if (!ScalableChatEngine._instance) {
+      if (isString(secretOrOptions)) {
+        // is secret, in server side
+        ScalableChatEngine._instance = new ScalableChatEngine(key, secretOrOptions, options)
+      } else {
+        ScalableChatEngine._instance = new ScalableChatEngine(key, secretOrOptions)
+      }
+    }
+    return ScalableChatEngine._instance as ScalableChatEngine
+  }
 
-		switch(event){
+  private getSocketManager(): Manager {
+    if (!this.socketManager) {
+      throw new Error('SocketManager Not Initialized')
+    }
+    return this.socketManager
+  }
 
-			default:
-				console.group("Drop Socket Event")
-				console.log("event", event)
-				console.log("data", data)
-				console.groupEnd()
-		}
-	}
+  private getChatSocket(): Socket {
+    if (!this.chatSocket) {
+      throw new Error('Socket Not Initialized')
+    }
+    return this.chatSocket
+  }
 
-	getAuthToken() {
-		return `Bearer ${this.key}`;
-	}
+  private _applySocketManagerEventHandler(socketManager: Manager) {
+    this.getSocketManager()
+    socketManager.on('open', () => {
+      this.options.logLevel <= LogLevel.LOG && console.log('Manager connect')
+    })
+    socketManager.on('close', (reason) => {
+      this.options.logLevel <= LogLevel.LOG && console.log('Manager close', reason)
+    })
+    socketManager.on('packet', (packet) => {
+      if (this.options.logLevel <= LogLevel.DEBUG) {
+        console.group('Manager packet')
+        console.dir(packet, { depth: null })
+        console.groupEnd()
+      }
+    })
+    socketManager.on('ping', () => {
+      this.options.logLevel <= LogLevel.DEBUG && console.log('Manager ping')
+    })
+    socketManager.on('reconnect', (attempt) => {
+      this.options.logLevel <= LogLevel.DEBUG && console.log('Manager Reconnect success: ', attempt)
+    })
+    socketManager.on('reconnect_attempt', (attempt) => {
+      this.options.logLevel <= LogLevel.DEBUG && console.log('Manager Reconnect attempt: ', attempt)
+    })
+    socketManager.on('reconnect_error', (err) => {
+      this.options.logLevel <= LogLevel.DEBUG && console.error('Manager Reconnect err: ', err)
+    })
+    socketManager.on('reconnect_failed', () => {
+      this.options.logLevel <= LogLevel.DEBUG && console.error('Manager Reconnect failed')
+    })
+  }
 
-	getChannel(channelId: string): SChannel {
-		return new SChannel(this, channelId);
-	}
+  private _getNamespaceSocket = (props: { namespace: string; socketOptions: Partial<SocketOptions> }) => {
+    const _socketManager = this.getSocketManager()
+    const { namespace = '/', socketOptions } = props
+    try {
+      const socket = _socketManager.socket(namespace, socketOptions)
+
+      this.options.logLevel <= LogLevel.DEBUG && console.log(`socket create namespace ${namespace} success`)
+      return socket
+    } catch (error) {
+      this.options.logLevel <= LogLevel.DEBUG &&
+        console.error(`getSocket error, ns: ${namespace}, socketOptions: ${JSON.stringify(socketOptions)}`)
+      throw new Error('Failed to get socket from socket manager')
+    }
+  }
+
+  private _applySocketEventHandler(socket: Socket) {
+    socket.on('connect', () => {
+      this.options.logLevel <= LogLevel.DEBUG && console.log(`Socket connected`)
+    })
+
+    socket.on('disconnect', (reason) => {
+      this.options.logLevel <= LogLevel.DEBUG && console.log(`Socket disconnect due to ${reason}`)
+    })
+
+    socket.on('connect_error', (error) => {
+      this.options.logLevel <= LogLevel.DEBUG && console.error('Socket Connect err: ', error)
+    })
+
+    socket.onAny((event, data) => {
+      this.socketEventHandler(event, data)
+    })
+  }
+
+  private socketEventHandler = (event: string, data: string) => {
+    switch (event) {
+      default:
+        console.group('Drop Socket Event')
+        console.log('event', event)
+        console.log('data', data)
+        console.groupEnd()
+    }
+  }
+
+  getAuthToken() {
+    return `Bearer ${this.key}`
+  }
+
+  getChannel(channelId: string): SChannel {
+    return new SChannel(this, channelId)
+  }
 }
 
 class SChannel {
-	private gqlClient: GraphQLClient;
-	readonly channelId: string;
-	constructor(public parent: ScalableChatEngine, channelId: string) {
-		this.channelId = channelId;
-		this.gqlClient = new GraphQLClient(parent.options.gqlURL!);
-		this.gqlClient.setHeader("authorization", parent.getAuthToken());
-		this.gqlClient.setHeader("channelId", this.channelId);
-	}
-	async sendTextMessage(message: string): Promise<ChannelMessageOutput> {
-		try {
-			const sendResult = await GQLFunction.cmChannelSendMessage(
-				{
-					// message: null as any as string,
-					message,
-					messageType: ChannelMessageType.TEXT,
-				},
-				this.gqlClient
-			);
-			return sendResult;
-		} catch (error) {
-			const errorMessages = getGQLErrorMessages(error)
-			throw new Error(
-				`${this.sendTextMessage.name} error. \n ${errorMessages.join("\n")}`
-			);
-		}
-	}
+  private gqlClient: GraphQLClient
+  readonly channelId: string
+  constructor(public parent: ScalableChatEngine, channelId: string) {
+    this.channelId = channelId
+    this.gqlClient = new GraphQLClient(parent.options.gqlURL)
+    this.gqlClient.setHeader('authorization', parent.getAuthToken())
+    this.gqlClient.setHeader('channelId', this.channelId)
+  }
+  async sendTextMessage(message: string): Promise<ChannelMessageOutput> {
+    try {
+      const sendResult = await GQLFunction.cmChannelSendMessage(
+        {
+          // message: null as any as string,
+          message,
+          messageType: ChannelMessageType.TEXT,
+        },
+        this.gqlClient
+      )
+      return sendResult
+    } catch (error) {
+      const errorMessages = getGQLErrorMessages(error)
+      throw new Error(`${this.sendTextMessage.name} error. \n ${errorMessages.join('\n')}`)
+    }
+  }
 
-    async addNewMembers(channelMemberCreateInputs:ChannelMemberCreateInput[]): Promise<ChannelMemberArrayOutput> {
-		try {
-			const sendResult = await GQLFunction.cmChannelAddMembers(
-				{
-					channelMemberCreateInputs,
-				},
-				this.gqlClient
-			);
-			return sendResult;
-		} catch (error) {
-			const errorMessages = getGQLErrorMessages(error)
-			throw new Error(
-				`${this.addNewMembers.name} error. \n ${errorMessages.join("\n")}`
-			);
-		}
-	}
+  async addNewMembers(channelMemberCreateInputs: ChannelMemberCreateInput[]): Promise<ChannelMemberArrayOutput> {
+    try {
+      const sendResult = await GQLFunction.cmChannelAddMembers(
+        {
+          channelMemberCreateInputs,
+        },
+        this.gqlClient
+      )
+      return sendResult
+    } catch (error) {
+      const errorMessages = getGQLErrorMessages(error)
+      throw new Error(`${this.addNewMembers.name} error. \n ${errorMessages.join('\n')}`)
+    }
+  }
 }

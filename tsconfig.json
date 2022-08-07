@@ -1,16 +1,24 @@
 {
     "compilerOptions": {
-      "target": "ES6" ,
+      "target": "es2017" ,
       "module": "commonjs",
       "declaration": true,
+      "removeComments": true,
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "allowSyntheticDefaultImports": true,
+      "sourceMap": true,
       "outDir": "./lib",
       "strict": true,
-      "typeRoots": [      
-        "./node_modules/@types/",
-        "./src/@types/"
-        ],                       
-        "types": ["jest", "node", "@types/jest"],  
+      "baseUrl": "./",
+      "incremental": true,
+      "skipLibCheck": true,
+      "strictNullChecks": false,
+      "noImplicitAny": false,
+      "strictBindCallApply": false,
+      "forceConsistentCasingInFileNames": false,
+      "noFallthroughCasesInSwitch": false
     },
     "include": ["src/**/*"],
-    "exclude": ["node_modules", "**/__tests__/*"]
+    "exclude": ["node_modules", "**/__tests__/*", "test", "dist"]
   }
