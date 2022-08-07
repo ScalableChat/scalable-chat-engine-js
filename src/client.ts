@@ -232,10 +232,13 @@ export class ScalableChatEngine {
     })
   }
 
-  private socketEventHandler = (event: WSServerEvent, data: any) => {
+  private socketEventHandler = (event: string, data: any) => {
     switch (event) {
       case WSServerEvent.NEW_MESSAGE:
         this.onNewMessage && this.onNewMessage(data as ChannelMessageOutput)
+        break
+      case "NEW_CHANNEL":
+        this.onNewChannel && this.onNewChannel(data as ChannelOutput)
         break
       default:
         console.group('Drop Socket Event')
