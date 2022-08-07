@@ -11,6 +11,7 @@ import {
 } from './gql/type'
 import { getGQLErrorMessages } from './gql/gqlErrorObject'
 import { GQLFunction } from './gql/gqlFunction'
+import { WSServerEvent } from './ws-events/ws-server-event.enum'
 export enum LogLevel {
   PRODUCTION = 9,
   LOG = 1,
@@ -46,8 +47,8 @@ export class ScalableChatEngine {
   // gqlURL?:string = "asd"
 
   // hooks
-  onNewMessage?: (message: ChannelMessageOutput) => Promise<void>
-  onNewChannel?: (channel: ChannelOutput) => Promise<void>
+  onNewMessage?: (message: ChannelMessageOutput) => void
+  onNewChannel?: (channel: ChannelOutput) => void
 
   private constructor(key: string, options?: ScalableChatEngineOptions)
   private constructor(key: string, secret?: string, options?: ScalableChatEngineOptions)
@@ -96,7 +97,7 @@ export class ScalableChatEngine {
 
     // Init GQL client
     this.gqlClient = new GraphQLClient(this.getGqlURL())
-    this.gqlClient.setHeader('authorization', this.getAuthToken())
+    this.gqlClient.setHeader('authorization', this._getAuthToken())
 
     // Init socket Manager
     const transports = ['websocket']
@@ -231,8 +232,11 @@ export class ScalableChatEngine {
     })
   }
 
-  private socketEventHandler = (event: string, data: string) => {
+  private socketEventHandler = (event: WSServerEvent, data: any) => {
     switch (event) {
+      case WSServerEvent.NEW_MESSAGE:
+        this.onNewMessage && this.onNewMessage(data as ChannelMessageOutput)
+        break
       default:
         console.group('Drop Socket Event')
         console.log('event', event)
@@ -241,7 +245,7 @@ export class ScalableChatEngine {
     }
   }
 
-  getAuthToken() {
+  _getAuthToken() {
     return `Bearer ${this.key}`
   }
 
@@ -252,6 +256,7 @@ export class ScalableChatEngine {
   shutdown() {
     this.getChatSocket().close()
   }
+
 }
 
 class SChannel {
@@ -260,7 +265,7 @@ class SChannel {
   constructor(public parent: ScalableChatEngine, channelId: string) {
     this.channelId = channelId
     this.gqlClient = new GraphQLClient(parent.getGqlURL())
-    this.gqlClient.setHeader('authorization', parent.getAuthToken())
+    this.gqlClient.setHeader('authorization', parent._getAuthToken())
     this.gqlClient.setHeader('channelId', this.channelId)
   }
   async sendTextMessage(message: string): Promise<ChannelMessageOutput> {
