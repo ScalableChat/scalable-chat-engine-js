@@ -1,7 +1,7 @@
 import { Manager, Socket, SocketOptions } from 'socket.io-client'
 import { GraphQLClient } from 'graphql-request'
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
-import { isBoolean, IsDefinedNotNull, isString } from './utils'
+import { isBoolean, isString } from './utils'
 import {
   ChannelMemberArrayOutput,
   ChannelMemberCreateInput,
