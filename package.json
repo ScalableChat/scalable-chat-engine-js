@@ -1,13 +1,13 @@
 {
   "name": "scalable-chat-engine",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "engine for client",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "test": "jest --config jestconfig.json --passWithNoTests",
     "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
     "preversion": "npm run lint",
     "version": "npm run format && git add -A src",
