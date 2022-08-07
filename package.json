@@ -1,8 +1,39 @@
 {
-  "name": "scalable-chat-engine-js",
+  "name": "scalable-chat-engine",
   "version": "1.0.0",
-  "description": "engine core for scalable chat",
-  "main": "index.js",
-  "author": "jackykwandesign <jackykwandesign@gmail.com>",
-  "license": "MIT"
+  "description": "engine for client",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test": "jest --config jestconfig.json --passWithNoTests",
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json",
+    "preversion" : "npm run lint",
+    "version" : "npm run format && git add -A src",
+    "postversion" : "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ScalableChat/scalable-chat-engine-js.git"
+  },
+  "keywords": ["ScalableChat","Chat","typescript","javascript"],
+  "author": "jackykwandesign",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ScalableChat/scalable-chat-engine-js/issues"
+  },
+  "homepage": "https://github.com/ScalableChat/scalable-chat-engine-js#readme",
+  "devDependencies": {
+    "@types/jest": "^28.1.6",
+    "jest": "^28.1.3",
+    "prettier": "^2.7.1",
+    "ts-jest": "^28.0.7",
+    "tslint": "^6.1.3",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^4.7.4"
+  },
+  "files": [
+    "lib/**/*"
+  ]
 }
