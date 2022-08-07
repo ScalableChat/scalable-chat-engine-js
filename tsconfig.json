@@ -1,11 +1,16 @@
 {
     "compilerOptions": {
-      "target": "es5",
+      "target": "ES6" ,
       "module": "commonjs",
       "declaration": true,
       "outDir": "./lib",
-      "strict": true
+      "strict": true,
+      "typeRoots": [      
+        "./node_modules/@types/",
+        "./src/@types/"
+        ],                       
+        "types": ["jest", "node", "@types/jest"],  
     },
-    "include": ["src"],
+    "include": ["src/**/*"],
     "exclude": ["node_modules", "**/__tests__/*"]
   }
