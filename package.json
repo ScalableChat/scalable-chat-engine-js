@@ -1,6 +1,6 @@
 {
   "name": "scalable-chat-engine",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "engine for client",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -9,15 +9,20 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
-    "preversion" : "npm run lint",
-    "version" : "npm run format && git add -A src",
-    "postversion" : "git push && git push --tags"
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ScalableChat/scalable-chat-engine-js.git"
   },
-  "keywords": ["ScalableChat","Chat","typescript","javascript"],
+  "keywords": [
+    "ScalableChat",
+    "Chat",
+    "typescript",
+    "javascript"
+  ],
   "author": "jackykwandesign",
   "license": "ISC",
   "bugs": {
