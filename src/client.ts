@@ -267,9 +267,7 @@ export class ScalableChatEngine {
 
   async getMyChannels(): Promise<CMMyChannelArrayOutput> {
     try {
-      const sendResult = await GQLFunction.cmMyChannels(
-        this.gqlClient
-      )
+      const sendResult = await GQLFunction.cmMyChannels(this.gqlClient)
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
@@ -281,10 +279,7 @@ export class ScalableChatEngine {
     cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput
   ): Promise<ChannelMessageArrayOutput> {
     try {
-      const sendResult = await GQLFunction.cmMyChannelsMessages(
-        cmMyChannelsMessagesFilterInput,
-        this.gqlClient
-      )
+      const sendResult = await GQLFunction.cmMyChannelsMessages(cmMyChannelsMessagesFilterInput, this.gqlClient)
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
