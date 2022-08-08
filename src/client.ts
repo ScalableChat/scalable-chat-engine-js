@@ -4,7 +4,6 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import { isBoolean, isString } from './utils'
 import {
   Channel,
-  ChannelArrayOutput,
   ChannelMemberArrayOutput,
   ChannelMemberCreateInput,
   ChannelMessage,
