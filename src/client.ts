@@ -237,7 +237,7 @@ export class ScalableChatEngine {
       case WSServerEvent.NEW_MESSAGE:
         this.onNewMessage && this.onNewMessage(data as ChannelMessageOutput)
         break
-      case "NEW_CHANNEL":
+      case 'NEW_CHANNEL':
         this.onNewChannel && this.onNewChannel(data as ChannelOutput)
         break
       default:
@@ -259,7 +259,6 @@ export class ScalableChatEngine {
   shutdown() {
     this.getChatSocket().close()
   }
-
 }
 
 class SChannel {
