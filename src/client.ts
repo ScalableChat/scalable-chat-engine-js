@@ -283,7 +283,7 @@ export class ScalableChatEngine {
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
-      throw new Error(`${this.getMyChannels.name} error. ${errorMessages.join('\n')}`)
+      throw new Error(`${this.getMyChannelsMessages.name} error. ${errorMessages.join('\n')}`)
     }
   }
 }

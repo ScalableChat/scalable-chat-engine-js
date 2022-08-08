@@ -112,6 +112,8 @@ export abstract class GQLFunction {
           data {
             id
             channelId
+            channelMemberId
+            chatMemberId
             message
             messageType
             url
