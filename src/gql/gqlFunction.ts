@@ -4,9 +4,101 @@ import {
   ChannelMessageOutput,
   CMChannelAddMembersInput,
   ChannelMemberArrayOutput,
+  CMMyChannelArrayOutput,
+  ChannelMessageArrayOutput,
+  CMMyChannelsMessagesFilterInput,
 } from './type'
 
 export abstract class GQLFunction {
+  static async cmMyChannels(client: GraphQLClient): Promise<CMMyChannelArrayOutput> {
+    const mutation = gql`
+      query {
+        cmMyChannels {
+          isSuccess
+          code
+          errorMessage
+          data {
+            channel {
+              id
+              name
+              photoURL
+              description
+              status
+              isDirect
+              createAt
+              updateAt
+              channelMembers {
+                id
+                channelId
+                chatMemberId
+                status
+                roles
+                createAt
+                updateAt
+                chatMember {
+                  id
+                  name
+                  photoURL
+                }
+              }
+            }
+            channelMember {
+              id
+              channelId
+              chatMemberId
+              status
+              roles
+              createAt
+              updateAt
+            }
+          }
+        }
+      }
+    `
+    const data = await client.request<{
+      cmMyChannels: CMMyChannelArrayOutput
+    }>(mutation)
+    return data.cmMyChannels
+  }
+
+  static async cmMyChannelsMessages(
+    cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput,
+    client: GraphQLClient
+  ): Promise<ChannelMessageArrayOutput> {
+    const query = gql`
+      query cmMyChannelsMessages($cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput!) {
+        cmMyChannelsMessages(cmMyChannelsMessagesFilterInput: $cmMyChannelsMessagesFilterInput) {
+          isSuccess
+          code
+          errorMessage
+          data {
+            id
+            channelId
+            chatMemberId
+            channelMemberId
+            message
+            messageType
+            url
+            createAt
+            updateAt
+          }
+        }
+      }
+    `
+    const variables = {
+      cmMyChannelsMessagesFilterInput,
+    }
+    const data = await client.request<
+      {
+        cmMyChannelsMessages: ChannelMessageArrayOutput
+      },
+      {
+        cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput
+      }
+    >(query, variables)
+    return data.cmMyChannelsMessages
+  }
+
   static async cmChannelSendMessage(
     channelMessageCreateInput: ChannelMessageCreateInput,
     client: GraphQLClient

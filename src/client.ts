@@ -3,11 +3,16 @@ import { GraphQLClient } from 'graphql-request'
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import { isBoolean, isString } from './utils'
 import {
+  Channel,
+  ChannelArrayOutput,
   ChannelMemberArrayOutput,
   ChannelMemberCreateInput,
+  ChannelMessage,
+  ChannelMessageArrayOutput,
   ChannelMessageOutput,
   ChannelMessageType,
-  ChannelOutput,
+  CMMyChannelArrayOutput,
+  CMMyChannelsMessagesFilterInput,
 } from './gql/type'
 import { getGQLErrorMessages } from './gql/gqlErrorObject'
 import { GQLFunction } from './gql/gqlFunction'
@@ -47,8 +52,8 @@ export class ScalableChatEngine {
   // gqlURL?:string = "asd"
 
   // hooks
-  onNewMessage?: (message: ChannelMessageOutput) => void
-  onNewChannel?: (channel: ChannelOutput) => void
+  onNewMessage?: (message: ChannelMessage) => void
+  onNewChannel?: (channel: Channel) => void
 
   private constructor(key: string, options?: ScalableChatEngineOptions)
   private constructor(key: string, secret?: string, options?: ScalableChatEngineOptions)
@@ -235,10 +240,10 @@ export class ScalableChatEngine {
   private socketEventHandler = (event: string, data: any) => {
     switch (event) {
       case WSServerEvent.NEW_MESSAGE:
-        this.onNewMessage && this.onNewMessage(data as ChannelMessageOutput)
+        this.onNewMessage && this.onNewMessage(data as ChannelMessage)
         break
       case 'NEW_CHANNEL':
-        this.onNewChannel && this.onNewChannel(data as ChannelOutput)
+        this.onNewChannel && this.onNewChannel(data as Channel)
         break
       default:
         console.group('Drop Socket Event')
@@ -259,6 +264,33 @@ export class ScalableChatEngine {
   shutdown() {
     this.getChatSocket().close()
   }
+
+  async getMyChannels(): Promise<CMMyChannelArrayOutput> {
+    try {
+      const sendResult = await GQLFunction.cmMyChannels(
+        this.gqlClient
+      )
+      return sendResult
+    } catch (error) {
+      const errorMessages = getGQLErrorMessages(error)
+      throw new Error(`${this.getMyChannels.name} error. ${errorMessages.join('\n')}`)
+    }
+  }
+
+  async getMyChannelsMessages(
+    cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput
+  ): Promise<ChannelMessageArrayOutput> {
+    try {
+      const sendResult = await GQLFunction.cmMyChannelsMessages(
+        cmMyChannelsMessagesFilterInput,
+        this.gqlClient
+      )
+      return sendResult
+    } catch (error) {
+      const errorMessages = getGQLErrorMessages(error)
+      throw new Error(`${this.getMyChannels.name} error. ${errorMessages.join('\n')}`)
+    }
+  }
 }
 
 class SChannel {
@@ -270,6 +302,7 @@ class SChannel {
     this.gqlClient.setHeader('authorization', parent._getAuthToken())
     this.gqlClient.setHeader('channelId', this.channelId)
   }
+
   async sendTextMessage(message: string): Promise<ChannelMessageOutput> {
     try {
       const sendResult = await GQLFunction.cmChannelSendMessage(

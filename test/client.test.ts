@@ -11,7 +11,7 @@ describe('WebSocket Client module test', () => {
   beforeAll(() => {
     // Start server
     client = ScalableChatEngine.getInstance(
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGF0QXBwSWQiOiIyYTgzOTgzMC03YTM2LTQxMGYtOGY3Ny0xNWY2YjVkNzQ0MGMiLCJjaGF0TWVtYmVySWQiOiI1YjNkM2M1YS1lY2ViLTRmNmItODFhNi0yYzk4NjUwZGM1MmUiLCJpYXQiOjE2NTgyMDkxODB9.D9FHUVDvmmTdCSfwL6E3DgQz4j-COH9VlVgyKIvNMi4',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGF0QXBwSWQiOiIyYTgzOTgzMC03YTM2LTQxMGYtOGY3Ny0xNWY2YjVkNzQ0MGMiLCJjaGF0TWVtYmVySWQiOiIxNGJlZWEyMC00MTMwLTRkZWItODlhYi02YWQ2ZDIyNjcyZjEiLCJpYXQiOjE2NTk5NjIxMjJ9.WOP-8R-WqLUV_KcpUWggnbaHZMGZ8ppzfvf-Vk-f-FI',
       {
         wsURL: 'http://localhost:3100',
         gqlURL: 'http://localhost:7100/graphql',
@@ -24,7 +24,33 @@ describe('WebSocket Client module test', () => {
     client.shutdown()
   })
 
-  test('the data is peanut butter', async () => {
+  let channelIds = []
+  test('Get My Channels', async () => {
+    const result = await client.getMyChannels()
+    expect(result.isSuccess).toBe(true)
+    expect(result.code).toBe(200)
+    expect(result.data).toBeDefined()
+    result!.data?.forEach(e=>{
+      channelIds.push(e.channel.id)
+      expect(e.channel.id).toBe(e.channelMember.channelId)
+    })
+  })
+
+  test('Get My Channels Messages', async () => {
+    const result = await client.getMyChannelsMessages({
+      channelIds:channelIds,
+      fromTime: new Date("2022-01-01").toISOString()
+    })
+    expect(result.isSuccess).toBe(true)
+    expect(result.code).toBe(200)
+    expect(result.data).toBeDefined()
+    expect(result.data?.length).toBeGreaterThanOrEqual(1)
+    result!.data?.forEach(e=>{
+      expect(channelIds).toContain(e.channelId)
+    })
+  })
+
+  test('Send Text Message', async () => {
     const newMessage = 'Hello World123'
     const channel = client.getChannel('33e6f3ac-a115-465d-9a49-1e0df5a1990b')
     const result = await channel.sendTextMessage(newMessage)
@@ -34,6 +60,8 @@ describe('WebSocket Client module test', () => {
     expect(result.data?.message).toBe(newMessage)
     expect(result.data?.messageType).toBe(ChannelMessageType.TEXT)
   })
+
+
 
   // test('the fetch fails with an error', async () => {
   //   try {
