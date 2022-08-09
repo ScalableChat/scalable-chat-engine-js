@@ -1,4 +1,4 @@
-import { ChannelMessageType, LogLevel, ScalableChatEngine } from '../src/index'
+import { ChannelMemberRole, ChannelMemberStatus, ChannelMessageType, LogLevel, ScalableChatEngine } from '../src/index'
 
 interface Error {
   name: string;
@@ -71,6 +71,58 @@ describe('WebSocket Client module test', () => {
     result!.data?.forEach(e=>{
       expect(channelIds).toContain(e.channelId)
     })
+  })
+
+
+  test('Create or Get Non exist Peer Channel', async () => {
+    const channelResult = await client.createOrGetPeerChannel({
+      chatMemberId:"33e6f3ac-a115-465d-9a49-1e0df5a1990b"
+    })
+    expect(channelResult.isSuccess).toBe(false)
+    expect(channelResult.code).toBe(400)
+    expect(channelResult.errorMessage).toBe("Fail cmPeerChannelGetOrCreate. Peer not found in chat member list.")
+  })
+
+  test('Create or Get exist Peer Channel', async () => {
+    const targetChatMemberId = "5b3d3c5a-eceb-4f6b-81a6-2c98650dc52e"
+    const channelResult = await client.createOrGetPeerChannel({
+      chatMemberId:targetChatMemberId
+    })
+    const sortedMemberIds = [chatMemberId,targetChatMemberId ].sort()
+
+    expect(channelResult.isSuccess).toBe(true)
+    expect(channelResult.code).toBe(200)
+    expect(channelResult.data?.id).toBe(sortedMemberIds.join("@"))
+  })
+
+  test('Create Group Channel', async () => {
+    const targetChatMemberId = "5b3d3c5a-eceb-4f6b-81a6-2c98650dc52e"
+    const channelResult = await client.createGroupChannel({
+      chatMemberIds:[targetChatMemberId]
+    })
+
+    expect(channelResult.isSuccess).toBe(true)
+    expect(channelResult.code).toBe(200)
+    const channel = channelResult.data
+
+    // all members inside
+    expect(channel?.channelMembers.length).toBe(2)
+
+    channel?.channelMembers.forEach(channelMember=>{
+      expect(channelMember.chatMemberId).toBeDefined()
+      expect(channelMember.channelId).toBe(channel.id)
+      expect(channelMember.chatAppId).toBe(channel.chatAppId)
+      expect(channelMember.chatMember).toBeDefined()
+      expect(channelMember.chatMember.id).toBe(channelMember.chatMemberId)
+      expect(channelMember?.roles).toContain(ChannelMemberRole.MEMBER)
+      expect(channelMember?.status).toBe(ChannelMemberStatus.ACTIVE)
+    })
+    // creator is owner
+    const creator = channel?.channelMembers.find(e=>e.chatMemberId === chatMemberId)
+    expect(creator).toBeDefined()
+    expect(creator?.chatMemberId).toBe(chatMemberId)
+    // creator Role is owner
+    expect(creator?.roles).toContain(ChannelMemberRole.OWNER)
   })
 
   test('Send Text Message', async () => {

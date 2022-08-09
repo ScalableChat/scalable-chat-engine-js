@@ -108,10 +108,15 @@ export abstract class GQLFunction {
             isDirect
             channelMembers {
               id
+              channelId
+              chatMemberId
               chatMember {
+                id
                 name
                 photoURL
               }
+              status
+              roles
               createAt
               updateAt
             }
@@ -152,10 +157,15 @@ export abstract class GQLFunction {
             isDirect
             channelMembers {
               id
+              channelId
+              chatMemberId
               chatMember {
+                id
                 name
                 photoURL
               }
+              status
+              roles
               createAt
               updateAt
             }
