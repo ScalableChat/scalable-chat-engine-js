@@ -48,7 +48,7 @@ export class ScalableChatEngine {
   axiosInstance: AxiosInstance
   // baseURL?:string = "asd"
   // wsURL?:string = "asd"
-  // gqlURL?:string = "asd"      
+  // gqlURL?:string = "asd"
 
   // hooks
   onNewMessage?: (message: ChannelMessage) => void
