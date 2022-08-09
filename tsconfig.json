@@ -8,6 +8,7 @@
       "experimentalDecorators": true,
       "allowSyntheticDefaultImports": true,
       "sourceMap": true,
+      "inlineSources":true,
       "outDir": "./lib",
       "strict": true,
       "baseUrl": "./",
