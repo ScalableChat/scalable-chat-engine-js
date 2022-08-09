@@ -7,9 +7,37 @@ import {
   CMMyChannelArrayOutput,
   ChannelMessageArrayOutput,
   CMMyChannelsMessagesFilterInput,
+  ChatMemberOutput,
+  ChannelOutput,
+  CMPeerChannelCreateInput,
+  CMGroupChannelCreateInput,
 } from './type'
 
 export abstract class GQLFunction {
+  static async cmMyChatMember(client: GraphQLClient): Promise<ChatMemberOutput> {
+    const query = gql`
+      query {
+        cmMyChatMember {
+          isSuccess
+          code
+          errorMessage
+          data {
+            id
+            chatAppId
+            photoURL
+            name
+            createAt
+            updateAt
+          }
+        }
+      }
+    `
+    const data = await client.request<{
+      cmMyChatMember: ChatMemberOutput
+    }>(query)
+    return data.cmMyChatMember
+  }
+
   static async cmMyChannels(client: GraphQLClient): Promise<CMMyChannelArrayOutput> {
     const mutation = gql`
       query {
@@ -59,6 +87,94 @@ export abstract class GQLFunction {
       cmMyChannels: CMMyChannelArrayOutput
     }>(mutation)
     return data.cmMyChannels
+  }
+
+  static async cmPeerChannelGetOrCreate(
+    cmPeerChannelCreateInput: CMPeerChannelCreateInput,
+    client: GraphQLClient
+  ): Promise<ChannelOutput> {
+    const mutation = gql`
+      mutation cmPeerChannelGetOrCreate($cmPeerChannelCreateInput: CMPeerChannelCreateInput!) {
+        cmPeerChannelGetOrCreate(cmPeerChannelCreateInput: $cmPeerChannelCreateInput) {
+          isSuccess
+          code
+          errorMessage
+          data {
+            id
+            name
+            photoURL
+            description
+            status
+            isDirect
+            channelMembers {
+              id
+              chatMember {
+                name
+                photoURL
+              }
+              createAt
+              updateAt
+            }
+          }
+        }
+      }
+    `
+    const variables = {
+      cmPeerChannelCreateInput: cmPeerChannelCreateInput,
+    }
+    const data = await client.request<
+      {
+        cmPeerChannelGetOrCreate: ChannelOutput
+      },
+      {
+        cmPeerChannelCreateInput: CMPeerChannelCreateInput
+      }
+    >(mutation, variables)
+    return data.cmPeerChannelGetOrCreate
+  }
+
+  static async cmGroupChannelGetOrCreate(
+    cmGroupChannelCreateInput: CMGroupChannelCreateInput,
+    client: GraphQLClient
+  ): Promise<ChannelOutput> {
+    const mutation = gql`
+      mutation cmGroupChannelGetOrCreate($cmGroupChannelCreateInput: CMGroupChannelCreateInput!) {
+        cmGroupChannelGetOrCreate(cmGroupChannelCreateInput: $cmGroupChannelCreateInput) {
+          isSuccess
+          code
+          errorMessage
+          data {
+            id
+            name
+            photoURL
+            description
+            status
+            isDirect
+            channelMembers {
+              id
+              chatMember {
+                name
+                photoURL
+              }
+              createAt
+              updateAt
+            }
+          }
+        }
+      }
+    `
+    const variables = {
+      cmGroupChannelCreateInput: cmGroupChannelCreateInput,
+    }
+    const data = await client.request<
+      {
+        cmGroupChannelGetOrCreate: ChannelOutput
+      },
+      {
+        cmGroupChannelCreateInput: CMGroupChannelCreateInput
+      }
+    >(mutation, variables)
+    return data.cmGroupChannelGetOrCreate
   }
 
   static async cmMyChannelsMessages(
@@ -134,6 +250,7 @@ export abstract class GQLFunction {
     >(mutation, variables)
     return data.cmChannelSendMessage
   }
+
   static async cmChannelAddMembers(
     cmChannelAddMembersInput: CMChannelAddMembersInput,
     client: GraphQLClient

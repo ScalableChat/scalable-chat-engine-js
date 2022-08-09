@@ -10,8 +10,12 @@ import {
   ChannelMessageArrayOutput,
   ChannelMessageOutput,
   ChannelMessageType,
+  ChannelOutput,
+  ChatMemberOutput,
+  CMGroupChannelCreateInput,
   CMMyChannelArrayOutput,
   CMMyChannelsMessagesFilterInput,
+  CMPeerChannelCreateInput,
 } from './gql/type'
 import { getGQLErrorMessages } from './gql/gqlErrorObject'
 import { GQLFunction } from './gql/gqlFunction'
@@ -264,6 +268,16 @@ export class ScalableChatEngine {
     this.getChatSocket().close()
   }
 
+  async getMyChatMember(): Promise<ChatMemberOutput> {
+    try {
+      const sendResult = await GQLFunction.cmMyChatMember(this.gqlClient)
+      return sendResult
+    } catch (error) {
+      const errorMessages = getGQLErrorMessages(error)
+      throw new Error(`${this.getMyChatMember.name} error. ${errorMessages.join('\n')}`)
+    }
+  }
+
   async getMyChannels(): Promise<CMMyChannelArrayOutput> {
     try {
       const sendResult = await GQLFunction.cmMyChannels(this.gqlClient)
@@ -283,6 +297,30 @@ export class ScalableChatEngine {
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
       throw new Error(`${this.getMyChannelsMessages.name} error. ${errorMessages.join('\n')}`)
+    }
+  }
+
+  async createOrGetPeerChannel(
+    cmPeerChannelCreateInput: CMPeerChannelCreateInput
+  ): Promise<ChannelOutput> {
+    try {
+      const sendResult = await GQLFunction.cmPeerChannelGetOrCreate(cmPeerChannelCreateInput, this.gqlClient)
+      return sendResult
+    } catch (error) {
+      const errorMessages = getGQLErrorMessages(error)
+      throw new Error(`${this.createOrGetPeerChannel.name} error. ${errorMessages.join('\n')}`)
+    }
+  }
+
+  async createGroupChannel(
+    cmGroupChannelCreateInput: CMGroupChannelCreateInput
+  ): Promise<ChannelOutput> {
+    try {
+      const sendResult = await GQLFunction.cmGroupChannelGetOrCreate(cmGroupChannelCreateInput, this.gqlClient)
+      return sendResult
+    } catch (error) {
+      const errorMessages = getGQLErrorMessages(error)
+      throw new Error(`${this.createOrGetPeerChannel.name} error. ${errorMessages.join('\n')}`)
     }
   }
 }

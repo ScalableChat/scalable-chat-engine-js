@@ -8,6 +8,10 @@ interface Error {
 
 describe('WebSocket Client module test', () => {
   let client: ScalableChatEngine
+  let chatAppId:string = "2a839830-7a36-410f-8f77-15f6b5d7440c"
+  let chatMemberId:string = "14beea20-4130-4deb-89ab-6ad6d22672f1"
+  let name:string = "Louis"
+
   beforeAll(() => {
     // Start server
     client = ScalableChatEngine.getInstance(
@@ -24,15 +28,34 @@ describe('WebSocket Client module test', () => {
     client.shutdown()
   })
 
-  let channelIds = []
-  test('Get My Channels', async () => {
-    const result = await client.getMyChannels()
+
+  test('Get My ChatMember', async () => {
+    const result = await client.getMyChatMember()
     expect(result.isSuccess).toBe(true)
     expect(result.code).toBe(200)
     expect(result.data).toBeDefined()
-    result!.data?.forEach(e=>{
-      channelIds.push(e.channel.id)
-      expect(e.channel.id).toBe(e.channelMember.channelId)
+    expect(result.data?.chatAppId).toBe(chatAppId)
+    expect(result.data?.id).toBe(chatMemberId)
+    expect(result.data?.name).toBe(name)
+  })
+
+
+  let channelIds:string[] = []
+  test('Get My Channels', async () => {
+    const myChannels = await client.getMyChannels()
+    expect(myChannels.isSuccess).toBe(true)
+    expect(myChannels.code).toBe(200)
+    expect(myChannels.data).toBeDefined()
+    myChannels!.data?.forEach(myChannel=>{
+      channelIds.push(myChannel.channel.id)
+      expect(myChannel.channel.id).toBe(myChannel.channelMember.channelId)
+
+      // verify channel member and chat member
+      myChannel.channel.channelMembers.forEach(channelMember=>{
+        if(channelMember.chatMember !== null){
+          expect(channelMember.chatMemberId).toBe(channelMember.chatMember.id)
+        }
+      })
     })
   })
 
