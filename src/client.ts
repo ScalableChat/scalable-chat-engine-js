@@ -300,9 +300,7 @@ export class ScalableChatEngine {
     }
   }
 
-  async createOrGetPeerChannel(
-    cmPeerChannelCreateInput: CMPeerChannelCreateInput
-  ): Promise<ChannelOutput> {
+  async createOrGetPeerChannel(cmPeerChannelCreateInput: CMPeerChannelCreateInput): Promise<ChannelOutput> {
     try {
       const sendResult = await GQLFunction.cmPeerChannelGetOrCreate(cmPeerChannelCreateInput, this.gqlClient)
       return sendResult
@@ -312,9 +310,7 @@ export class ScalableChatEngine {
     }
   }
 
-  async createGroupChannel(
-    cmGroupChannelCreateInput: CMGroupChannelCreateInput
-  ): Promise<ChannelOutput> {
+  async createGroupChannel(cmGroupChannelCreateInput: CMGroupChannelCreateInput): Promise<ChannelOutput> {
     try {
       const sendResult = await GQLFunction.cmGroupChannelGetOrCreate(cmGroupChannelCreateInput, this.gqlClient)
       return sendResult
