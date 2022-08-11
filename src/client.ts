@@ -11,7 +11,9 @@ import {
   ChannelMessageOutput,
   ChannelMessageType,
   ChannelOutput,
+  ChatMemberArrayOutput,
   ChatMemberOutput,
+  CMChatMemberSearchFilterInput,
   CMGroupChannelCreateInput,
   CMMyChannelArrayOutput,
   CMMyChannelsMessagesFilterInput,
@@ -293,6 +295,22 @@ export class ScalableChatEngine {
   ): Promise<ChannelMessageArrayOutput> {
     try {
       const sendResult = await GQLFunction.cmMyChannelsMessages(cmMyChannelsMessagesFilterInput, this.gqlClient)
+      return sendResult
+    } catch (error) {
+      const errorMessages = getGQLErrorMessages(error)
+      throw new Error(`${this.getMyChannelsMessages.name} error. ${errorMessages.join('\n')}`)
+    }
+  }
+
+  async searchChatMembers(
+    name:string
+    // cmChatMemberSearchFilterInput: CMChatMemberSearchFilterInput
+  ): Promise<ChatMemberArrayOutput> {
+    try {
+      const sendResult = await GQLFunction.cmChatMembersSearch({
+        name,
+        pagination:{} // force 10 or server limit
+      }, this.gqlClient)
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)

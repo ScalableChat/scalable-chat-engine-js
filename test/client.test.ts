@@ -73,6 +73,22 @@ describe('WebSocket Client module test', () => {
     })
   })
 
+  test('Search ChatMembers', async () => {
+    const result = await client.searchChatMembers("louis")
+    expect(result.isSuccess).toBe(true)
+    expect(result.code).toBe(200)
+    expect(result.data).toBeDefined()
+
+    // result limit less then 10 due to limit in pagination
+    expect(result.data?.length).toBeLessThanOrEqual(10)
+    result.data?.forEach(chatMember=>{
+      // have name / chat Member id in result
+      expect(chatMember.id).not.toBe(chatMemberId)
+      expect(chatMember.id).toBeDefined()
+      expect(chatMember.name).toBeDefined()
+    })
+  })
+
 
   test('Create or Get Non exist Peer Channel', async () => {
     const channelResult = await client.createOrGetPeerChannel({
