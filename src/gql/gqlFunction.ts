@@ -11,6 +11,8 @@ import {
   ChannelOutput,
   CMPeerChannelCreateInput,
   CMGroupChannelCreateInput,
+  ChatMemberArrayOutput,
+  CMChatMemberSearchFilterInput,
 } from './type'
 
 export abstract class GQLFunction {
@@ -32,9 +34,10 @@ export abstract class GQLFunction {
         }
       }
     `
-    const data = await client.request<{
+    type GQLOutput = {
       cmMyChatMember: ChatMemberOutput
-    }>(query)
+    }
+    const data = await client.request<GQLOutput>(query)
     return data.cmMyChatMember
   }
 
@@ -83,10 +86,40 @@ export abstract class GQLFunction {
         }
       }
     `
-    const data = await client.request<{
+    type GQLOutput = {
       cmMyChannels: CMMyChannelArrayOutput
-    }>(mutation)
+    }
+    const data = await client.request<GQLOutput>(mutation)
     return data.cmMyChannels
+  }
+
+  static async cmChatMembersSearch(
+    cmChatMemberSearchFilterInput: CMChatMemberSearchFilterInput,
+    client: GraphQLClient
+  ): Promise<ChatMemberArrayOutput> {
+    const query = gql`
+      query cmChatMembersSearch($cmChatMemberSearchFilterInput: CMChatMemberSearchFilterInput!) {
+        cmChatMembersSearch(cmChatMemberSearchFilterInput: $cmChatMemberSearchFilterInput) {
+          isSuccess
+          code
+          errorMessage
+          data {
+            id
+            chatAppId
+            name
+            photoURL
+            createAt
+            updateAt
+          }
+        }
+      }
+    `
+    type GQLInput = { cmChatMemberSearchFilterInput: CMChatMemberSearchFilterInput }
+    type GQLOutput = { cmChatMembersSearch: ChatMemberArrayOutput }
+
+    const variables: GQLInput = { cmChatMemberSearchFilterInput }
+    const data = await client.request<GQLOutput, GQLInput>(query, variables)
+    return data.cmChatMembersSearch
   }
 
   static async cmPeerChannelGetOrCreate(
@@ -124,17 +157,13 @@ export abstract class GQLFunction {
         }
       }
     `
-    const variables = {
-      cmPeerChannelCreateInput: cmPeerChannelCreateInput,
+    type GQLInput = { cmPeerChannelCreateInput: CMPeerChannelCreateInput }
+    type GQLOutput = { cmPeerChannelGetOrCreate: ChannelOutput }
+
+    const variables: GQLInput = {
+      cmPeerChannelCreateInput,
     }
-    const data = await client.request<
-      {
-        cmPeerChannelGetOrCreate: ChannelOutput
-      },
-      {
-        cmPeerChannelCreateInput: CMPeerChannelCreateInput
-      }
-    >(mutation, variables)
+    const data = await client.request<GQLOutput, GQLInput>(mutation, variables)
     return data.cmPeerChannelGetOrCreate
   }
 
@@ -173,17 +202,12 @@ export abstract class GQLFunction {
         }
       }
     `
-    const variables = {
-      cmGroupChannelCreateInput: cmGroupChannelCreateInput,
+    type GQLInput = { cmGroupChannelCreateInput: CMGroupChannelCreateInput }
+    type GQLOutput = { cmGroupChannelGetOrCreate: ChannelOutput }
+    const variables: GQLInput = {
+      cmGroupChannelCreateInput,
     }
-    const data = await client.request<
-      {
-        cmGroupChannelGetOrCreate: ChannelOutput
-      },
-      {
-        cmGroupChannelCreateInput: CMGroupChannelCreateInput
-      }
-    >(mutation, variables)
+    const data = await client.request<GQLOutput, GQLInput>(mutation, variables)
     return data.cmGroupChannelGetOrCreate
   }
 
@@ -211,17 +235,12 @@ export abstract class GQLFunction {
         }
       }
     `
-    const variables = {
+    type GQLInput = { cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput }
+    type GQLOutput = { cmMyChannelsMessages: ChannelMessageArrayOutput }
+    const variables: GQLInput = {
       cmMyChannelsMessagesFilterInput,
     }
-    const data = await client.request<
-      {
-        cmMyChannelsMessages: ChannelMessageArrayOutput
-      },
-      {
-        cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput
-      }
-    >(query, variables)
+    const data = await client.request<GQLOutput, GQLInput>(query, variables)
     return data.cmMyChannelsMessages
   }
 
@@ -247,17 +266,12 @@ export abstract class GQLFunction {
         }
       }
     `
-    const variables = {
+    type GQLInput = { channelMessageCreateInput: ChannelMessageCreateInput }
+    type GQLOutput = { cmChannelSendMessage: ChannelMessageOutput }
+    const variables: GQLInput = {
       channelMessageCreateInput,
     }
-    const data = await client.request<
-      {
-        cmChannelSendMessage: ChannelMessageOutput
-      },
-      {
-        channelMessageCreateInput: ChannelMessageCreateInput
-      }
-    >(mutation, variables)
+    const data = await client.request<GQLOutput, GQLInput>(mutation, variables)
     return data.cmChannelSendMessage
   }
 
@@ -281,17 +295,12 @@ export abstract class GQLFunction {
         }
       }
     `
-    const variables = {
+    type GQLInput = { cmChannelAddMembersInput: CMChannelAddMembersInput }
+    type GQLOutput = { cmChannelAddMembers: ChannelMemberArrayOutput }
+    const variables: GQLInput = {
       cmChannelAddMembersInput,
     }
-    const data = await client.request<
-      {
-        cmChannelAddMembers: ChannelMemberArrayOutput
-      },
-      {
-        cmChannelAddMembersInput: CMChannelAddMembersInput
-      }
-    >(mutation, variables)
+    const data = await client.request<GQLOutput, GQLInput>(mutation, variables)
     return data.cmChannelAddMembers
   }
 }
