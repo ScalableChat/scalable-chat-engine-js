@@ -46,9 +46,9 @@ export abstract class GQLFunction {
     client: GraphQLClient,
     cmMyChannelsFilterInput?: CMMyChannelsFilterInput
   ): Promise<CMMyChannelArrayOutput> {
-    const mutation = gql`
-      query {
-        cmMyChannels {
+    const query = gql`
+      query cmMyChannels($cmMyChannelsFilterInput: CMMyChannelsFilterInput) {
+        cmMyChannels(cmMyChannelsFilterInput: $cmMyChannelsFilterInput) {
           isSuccess
           code
           errorMessage
@@ -95,7 +95,7 @@ export abstract class GQLFunction {
       cmMyChannels: CMMyChannelArrayOutput
     }
     const variables: GQLInput = { cmMyChannelsFilterInput }
-    const data = await client.request<GQLOutput, GQLInput>(mutation, variables)
+    const data = await client.request<GQLOutput, GQLInput>(query, variables)
     return data.cmMyChannels
   }
 

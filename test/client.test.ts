@@ -41,6 +41,7 @@ describe('WebSocket Client module test', () => {
 
 
   let channelIds:string[] = []
+
   test('Get My Channels', async () => {
     const myChannels = await client.getMyChannels()
     expect(myChannels.isSuccess).toBe(true)
@@ -57,6 +58,19 @@ describe('WebSocket Client module test', () => {
         }
       })
     })
+  })
+
+  test('Get My Channels Single', async () => {
+    if(channelIds.length > 0){
+      const targetChannelId = channelIds[0]
+      const myChannels = await client.getMyChannels({channelIds:[targetChannelId]})
+      expect(myChannels.isSuccess).toBe(true)
+      expect(myChannels.code).toBe(200)
+      expect(myChannels.data).toBeDefined()
+      expect(myChannels.data?.length).toBe(1)
+      const data = myChannels.data[0]
+      expect(data.channel.id).toBe(targetChannelId)
+    }
   })
 
   test('Get My Channels Messages', async () => {
@@ -142,14 +156,17 @@ describe('WebSocket Client module test', () => {
   })
 
   test('Send Text Message', async () => {
-    const newMessage = 'Hello World123'
-    const channel = client.getChannel('33e6f3ac-a115-465d-9a49-1e0df5a1990b')
-    const result = await channel.sendTextMessage(newMessage)
-    expect(result.isSuccess).toBe(true)
-    expect(result.code).toBe(200)
-    expect(result.data?.channelId).toBe('33e6f3ac-a115-465d-9a49-1e0df5a1990b')
-    expect(result.data?.message).toBe(newMessage)
-    expect(result.data?.messageType).toBe(ChannelMessageType.TEXT)
+    if(channelIds.length > 0){
+      const targetChannelId = channelIds[0]
+      const newMessage = 'Hello World123'
+      const channel = client.getChannel(targetChannelId)
+      const result = await channel.sendTextMessage(newMessage)
+      expect(result.isSuccess).toBe(true)
+      expect(result.code).toBe(200)
+      expect(result.data?.channelId).toBe(targetChannelId)
+      expect(result.data?.message).toBe(newMessage)
+      expect(result.data?.messageType).toBe(ChannelMessageType.TEXT)
+    }
   })
 
 
