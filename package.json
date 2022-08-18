@@ -1,6 +1,6 @@
 {
   "name": "@scalablechat/scalable-chat-engine",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "engine for client",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
