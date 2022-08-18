@@ -57,8 +57,8 @@ export class ScalableChatEngine {
   // gqlURL?:string = "asd"
 
   // hooks
-  onNewMessage?: (message: ChannelMessage) => void
-  onNewChannel?: (channel: Channel) => void
+  onNewMessage?: (instance:ScalableChatEngine, message: ChannelMessage) => void
+  onNewChannel?: (instance:ScalableChatEngine, channel: Channel) => void
 
   private constructor(key: string, options?: ScalableChatEngineOptions)
   private constructor(key: string, secret?: string, options?: ScalableChatEngineOptions)
@@ -245,10 +245,10 @@ export class ScalableChatEngine {
   private socketEventHandler = (event: string, data: any) => {
     switch (event) {
       case WSServerEvent.NEW_MESSAGE:
-        this.onNewMessage && this.onNewMessage(data as ChannelMessage)
+        this.onNewMessage && this.onNewMessage(ScalableChatEngine._instance, data as ChannelMessage)
         break
       case 'NEW_CHANNEL':
-        this.onNewChannel && this.onNewChannel(data as Channel)
+        this.onNewChannel && this.onNewChannel(ScalableChatEngine._instance, data as Channel)
         break
       default:
         console.group('Drop Socket Event')
