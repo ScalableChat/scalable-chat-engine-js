@@ -57,8 +57,8 @@ export class ScalableChatEngine {
   // gqlURL?:string = "asd"
 
   // hooks
-  onNewMessage?: (instance:ScalableChatEngine, message: ChannelMessage) => void
-  onNewChannel?: (instance:ScalableChatEngine, channel: Channel) => void
+  onNewMessage?: (instance: ScalableChatEngine, message: ChannelMessage) => void
+  onNewChannel?: (instance: ScalableChatEngine, channel: Channel) => void
 
   private constructor(key: string, options?: ScalableChatEngineOptions)
   private constructor(key: string, secret?: string, options?: ScalableChatEngineOptions)
