@@ -18,7 +18,7 @@ describe('WebSocket Client module test', () => {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGF0QXBwSWQiOiIyYTgzOTgzMC03YTM2LTQxMGYtOGY3Ny0xNWY2YjVkNzQ0MGMiLCJjaGF0TWVtYmVySWQiOiIxNGJlZWEyMC00MTMwLTRkZWItODlhYi02YWQ2ZDIyNjcyZjEiLCJpYXQiOjE2NTk5NjIxMjJ9.WOP-8R-WqLUV_KcpUWggnbaHZMGZ8ppzfvf-Vk-f-FI',
       {
         wsURL: 'http://localhost:3100',
-        gqlURL: 'http://localhost:7100/graphql',
+        gqlURL: 'http://localhost:7101/graphql',
         logLevel: LogLevel.PRODUCTION,
       }
     )

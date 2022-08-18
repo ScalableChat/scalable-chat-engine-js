@@ -13,6 +13,7 @@ import {
   CMGroupChannelCreateInput,
   ChatMemberArrayOutput,
   CMChatMemberSearchFilterInput,
+  CMMyChannelsFilterInput,
 } from './type'
 
 export abstract class GQLFunction {
@@ -41,7 +42,10 @@ export abstract class GQLFunction {
     return data.cmMyChatMember
   }
 
-  static async cmMyChannels(client: GraphQLClient): Promise<CMMyChannelArrayOutput> {
+  static async cmMyChannels(
+    client: GraphQLClient,
+    cmMyChannelsFilterInput?: CMMyChannelsFilterInput
+  ): Promise<CMMyChannelArrayOutput> {
     const mutation = gql`
       query {
         cmMyChannels {
@@ -86,16 +90,18 @@ export abstract class GQLFunction {
         }
       }
     `
+    type GQLInput = { cmMyChannelsFilterInput: CMMyChannelsFilterInput }
     type GQLOutput = {
       cmMyChannels: CMMyChannelArrayOutput
     }
-    const data = await client.request<GQLOutput>(mutation)
+    const variables: GQLInput = { cmMyChannelsFilterInput }
+    const data = await client.request<GQLOutput, GQLInput>(mutation, variables)
     return data.cmMyChannels
   }
 
   static async cmChatMembersSearch(
-    cmChatMemberSearchFilterInput: CMChatMemberSearchFilterInput,
-    client: GraphQLClient
+    client: GraphQLClient,
+    cmChatMemberSearchFilterInput: CMChatMemberSearchFilterInput
   ): Promise<ChatMemberArrayOutput> {
     const query = gql`
       query cmChatMembersSearch($cmChatMemberSearchFilterInput: CMChatMemberSearchFilterInput!) {
@@ -123,8 +129,8 @@ export abstract class GQLFunction {
   }
 
   static async cmPeerChannelGetOrCreate(
-    cmPeerChannelCreateInput: CMPeerChannelCreateInput,
-    client: GraphQLClient
+    client: GraphQLClient,
+    cmPeerChannelCreateInput: CMPeerChannelCreateInput
   ): Promise<ChannelOutput> {
     const mutation = gql`
       mutation cmPeerChannelGetOrCreate($cmPeerChannelCreateInput: CMPeerChannelCreateInput!) {
@@ -168,8 +174,8 @@ export abstract class GQLFunction {
   }
 
   static async cmGroupChannelGetOrCreate(
-    cmGroupChannelCreateInput: CMGroupChannelCreateInput,
-    client: GraphQLClient
+    client: GraphQLClient,
+    cmGroupChannelCreateInput: CMGroupChannelCreateInput
   ): Promise<ChannelOutput> {
     const mutation = gql`
       mutation cmGroupChannelGetOrCreate($cmGroupChannelCreateInput: CMGroupChannelCreateInput!) {
@@ -212,8 +218,8 @@ export abstract class GQLFunction {
   }
 
   static async cmMyChannelsMessages(
-    cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput,
-    client: GraphQLClient
+    client: GraphQLClient,
+    cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput
   ): Promise<ChannelMessageArrayOutput> {
     const query = gql`
       query cmMyChannelsMessages($cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput!) {
@@ -245,8 +251,8 @@ export abstract class GQLFunction {
   }
 
   static async cmChannelSendMessage(
-    channelMessageCreateInput: ChannelMessageCreateInput,
-    client: GraphQLClient
+    client: GraphQLClient,
+    channelMessageCreateInput: ChannelMessageCreateInput
   ): Promise<ChannelMessageOutput> {
     const mutation = gql`
       mutation cmChannelSendMessage($channelMessageCreateInput: ChannelMessageCreateInput!) {
@@ -276,8 +282,8 @@ export abstract class GQLFunction {
   }
 
   static async cmChannelAddMembers(
-    cmChannelAddMembersInput: CMChannelAddMembersInput,
-    client: GraphQLClient
+    client: GraphQLClient,
+    cmChannelAddMembersInput: CMChannelAddMembersInput
   ): Promise<ChannelMemberArrayOutput> {
     const mutation = gql`
       mutation cmChannelAddMembers($cmChannelAddMembersInput: CMChannelAddMembersInput!) {

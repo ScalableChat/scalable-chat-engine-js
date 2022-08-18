@@ -134,6 +134,7 @@ export interface ChatAppTokenFilterInput {
 export interface ChatMemberFilterInput {
   pagination?: Nullable<PaginationInput>
   chatMemberIds?: Nullable<string[]>
+  excludeChatMemberIds?: Nullable<string[]>
   chatAppIds?: Nullable<string[]>
   name?: Nullable<string>
 }
@@ -169,6 +170,11 @@ export interface ChannelMessageFilterInput {
   messageTypes?: Nullable<ChannelMessageType[]>
   fromTime?: Nullable<DateTime>
   toTime?: Nullable<DateTime>
+}
+
+export interface CMMyChannelsFilterInput {
+  pagination?: Nullable<PaginationInput>
+  channelIds?: Nullable<string[]>
 }
 
 export interface CMMyChannelsMessagesFilterInput {
@@ -742,7 +748,9 @@ export interface IQuery {
   chatAppsGet1(chatAppFilterInput?: Nullable<ChatAppFilterInput>): ChatAppArrayOutput | Promise<ChatAppArrayOutput>
   chatAppsGet2(chatAppFilterInput?: Nullable<ChatAppFilterInput>): ChatAppArrayOutput | Promise<ChatAppArrayOutput>
   cmMyChatMember(): ChatMemberOutput | Promise<ChatMemberOutput>
-  cmMyChannels(): CMMyChannelArrayOutput | Promise<CMMyChannelArrayOutput>
+  cmMyChannels(
+    cmMyChannelsFilterInput?: Nullable<CMMyChannelsFilterInput>
+  ): CMMyChannelArrayOutput | Promise<CMMyChannelArrayOutput>
   cmMyChannelsMessages(
     cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput
   ): ChannelMessageArrayOutput | Promise<ChannelMessageArrayOutput>

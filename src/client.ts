@@ -13,9 +13,9 @@ import {
   ChannelOutput,
   ChatMemberArrayOutput,
   ChatMemberOutput,
-  CMChatMemberSearchFilterInput,
   CMGroupChannelCreateInput,
   CMMyChannelArrayOutput,
+  CMMyChannelsFilterInput,
   CMMyChannelsMessagesFilterInput,
   CMPeerChannelCreateInput,
 } from './gql/type'
@@ -280,9 +280,9 @@ export class ScalableChatEngine {
     }
   }
 
-  async getMyChannels(): Promise<CMMyChannelArrayOutput> {
+  async getMyChannels(cmMyChannelsFilterInput?: CMMyChannelsFilterInput): Promise<CMMyChannelArrayOutput> {
     try {
-      const sendResult = await GQLFunction.cmMyChannels(this.gqlClient)
+      const sendResult = await GQLFunction.cmMyChannels(this.gqlClient, cmMyChannelsFilterInput)
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
@@ -294,7 +294,7 @@ export class ScalableChatEngine {
     cmMyChannelsMessagesFilterInput: CMMyChannelsMessagesFilterInput
   ): Promise<ChannelMessageArrayOutput> {
     try {
-      const sendResult = await GQLFunction.cmMyChannelsMessages(cmMyChannelsMessagesFilterInput, this.gqlClient)
+      const sendResult = await GQLFunction.cmMyChannelsMessages(this.gqlClient, cmMyChannelsMessagesFilterInput)
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
@@ -307,13 +307,10 @@ export class ScalableChatEngine {
     // cmChatMemberSearchFilterInput: CMChatMemberSearchFilterInput
   ): Promise<ChatMemberArrayOutput> {
     try {
-      const sendResult = await GQLFunction.cmChatMembersSearch(
-        {
-          name,
-          pagination: {}, // force 10 or server limit
-        },
-        this.gqlClient
-      )
+      const sendResult = await GQLFunction.cmChatMembersSearch(this.gqlClient, {
+        name,
+        pagination: {}, // force 10 or server limit
+      })
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
@@ -323,7 +320,7 @@ export class ScalableChatEngine {
 
   async createOrGetPeerChannel(cmPeerChannelCreateInput: CMPeerChannelCreateInput): Promise<ChannelOutput> {
     try {
-      const sendResult = await GQLFunction.cmPeerChannelGetOrCreate(cmPeerChannelCreateInput, this.gqlClient)
+      const sendResult = await GQLFunction.cmPeerChannelGetOrCreate(this.gqlClient, cmPeerChannelCreateInput)
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
@@ -333,7 +330,7 @@ export class ScalableChatEngine {
 
   async createGroupChannel(cmGroupChannelCreateInput: CMGroupChannelCreateInput): Promise<ChannelOutput> {
     try {
-      const sendResult = await GQLFunction.cmGroupChannelGetOrCreate(cmGroupChannelCreateInput, this.gqlClient)
+      const sendResult = await GQLFunction.cmGroupChannelGetOrCreate(this.gqlClient, cmGroupChannelCreateInput)
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
@@ -354,14 +351,11 @@ class SChannel {
 
   async sendTextMessage(message: string): Promise<ChannelMessageOutput> {
     try {
-      const sendResult = await GQLFunction.cmChannelSendMessage(
-        {
-          // message: null as any as string,
-          message,
-          messageType: ChannelMessageType.TEXT,
-        },
-        this.gqlClient
-      )
+      const sendResult = await GQLFunction.cmChannelSendMessage(this.gqlClient, {
+        // message: null as any as string,
+        message,
+        messageType: ChannelMessageType.TEXT,
+      })
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
@@ -371,12 +365,9 @@ class SChannel {
 
   async addNewMembers(channelMemberCreateInputs: ChannelMemberCreateInput[]): Promise<ChannelMemberArrayOutput> {
     try {
-      const sendResult = await GQLFunction.cmChannelAddMembers(
-        {
-          channelMemberCreateInputs,
-        },
-        this.gqlClient
-      )
+      const sendResult = await GQLFunction.cmChannelAddMembers(this.gqlClient, {
+        channelMemberCreateInputs,
+      })
       return sendResult
     } catch (error) {
       const errorMessages = getGQLErrorMessages(error)
