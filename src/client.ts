@@ -247,13 +247,16 @@ export class ScalableChatEngine {
   private socketEventHandler = (event: string, data: any) => {
     switch (event) {
       case WSServerEvent.NEW_MESSAGE:
+        this.getLogLevel() <= LogLevel.DEBUG && console.error('onNewMessage: ', this.onNewMessage)
         this.onNewMessage && this.onNewMessage(ScalableChatEngine._instance, data as ChannelMessage)
         break
       case WSServerEvent.NEW_GROUP_CHANNEL:
       case WSServerEvent.NEW_PEER_CHANNEL:
+        this.getLogLevel() <= LogLevel.DEBUG && console.error('onNewChannel: ', this.onNewChannel)
         this.onNewChannel && this.onNewChannel(ScalableChatEngine._instance, data as Channel)
         break
       case WSServerEvent.NEW_GROUP_CHANNEL_MEMBERS:
+        this.getLogLevel() <= LogLevel.DEBUG && console.error('onNewChannelMembers: ', this.onNewChannelMembers)
         this.onNewChannelMembers && this.onNewChannelMembers(ScalableChatEngine._instance, data as ChannelMember[])
         break
       default:
