@@ -4,6 +4,7 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import { isBoolean, isString } from './utils'
 import {
   Channel,
+  ChannelMember,
   ChannelMemberArrayOutput,
   ChannelMemberCreateInput,
   ChannelMessage,
@@ -59,6 +60,7 @@ export class ScalableChatEngine {
   // hooks
   onNewMessage?: (instance: ScalableChatEngine, message: ChannelMessage) => void
   onNewChannel?: (instance: ScalableChatEngine, channel: Channel) => void
+  onNewChannelMembers?: (instance: ScalableChatEngine, channelMembers: ChannelMember[]) => void
 
   private constructor(key: string, options?: ScalableChatEngineOptions)
   private constructor(key: string, secret?: string, options?: ScalableChatEngineOptions)
@@ -247,8 +249,12 @@ export class ScalableChatEngine {
       case WSServerEvent.NEW_MESSAGE:
         this.onNewMessage && this.onNewMessage(ScalableChatEngine._instance, data as ChannelMessage)
         break
-      case 'NEW_CHANNEL':
+      case WSServerEvent.NEW_GROUP_CHANNEL:
+      case WSServerEvent.NEW_PEER_CHANNEL:
         this.onNewChannel && this.onNewChannel(ScalableChatEngine._instance, data as Channel)
+        break
+      case WSServerEvent.NEW_GROUP_CHANNEL_MEMBERS:
+        this.onNewChannelMembers && this.onNewChannelMembers(ScalableChatEngine._instance, data as ChannelMember[])
         break
       default:
         console.group('Drop Socket Event')
