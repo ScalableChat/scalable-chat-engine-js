@@ -140,21 +140,34 @@ export abstract class GQLFunction {
           code
           errorMessage
           data {
-            id
-            name
-            photoURL
-            description
-            status
-            isDirect
-            channelMembers {
+            channel {
+              id
+              name
+              photoURL
+              description
+              status
+              isDirect
+              createAt
+              updateAt
+              channelMembers {
+                id
+                channelId
+                chatMemberId
+                status
+                roles
+                createAt
+                updateAt
+                chatMember {
+                  id
+                  name
+                  photoURL
+                }
+              }
+            }
+            channelMember {
               id
               channelId
               chatMemberId
-              chatMember {
-                id
-                name
-                photoURL
-              }
               status
               roles
               createAt
@@ -185,21 +198,34 @@ export abstract class GQLFunction {
           code
           errorMessage
           data {
-            id
-            name
-            photoURL
-            description
-            status
-            isDirect
-            channelMembers {
+            channel {
+              id
+              name
+              photoURL
+              description
+              status
+              isDirect
+              createAt
+              updateAt
+              channelMembers {
+                id
+                channelId
+                chatMemberId
+                status
+                roles
+                createAt
+                updateAt
+                chatMember {
+                  id
+                  name
+                  photoURL
+                }
+              }
+            }
+            channelMember {
               id
               channelId
               chatMemberId
-              chatMember {
-                id
-                name
-                photoURL
-              }
               status
               roles
               createAt

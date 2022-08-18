@@ -122,7 +122,7 @@ describe('WebSocket Client module test', () => {
 
     expect(channelResult.isSuccess).toBe(true)
     expect(channelResult.code).toBe(200)
-    expect(channelResult.data?.id).toBe(sortedMemberIds.join("@"))
+    expect(channelResult.data?.channel.id).toBe(sortedMemberIds.join("@"))
   })
 
   test('Create Group Channel', async () => {
@@ -133,7 +133,7 @@ describe('WebSocket Client module test', () => {
 
     expect(channelResult.isSuccess).toBe(true)
     expect(channelResult.code).toBe(200)
-    const channel = channelResult.data
+    const channel = channelResult.data?.channel
 
     // all members inside
     expect(channel?.channelMembers.length).toBe(2)
